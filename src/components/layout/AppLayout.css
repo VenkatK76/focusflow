@@ -1,0 +1,14 @@
+/* AppLayout.css */
+.layout-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bg-color);
+}
+
+.main-content {
+    flex: 1;
+    padding: 40px;
+    max-width: 1200px;
+    /* Centers the content nicely if the screen is ultra-wide */
+    margin: 0 auto;
+}

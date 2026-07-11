@@ -1,0 +1,347 @@
+/* CommitmentBoard.css */
+
+:root {
+  --primary: #006c49;
+  --primary-light: #e6f3ef;
+  --surface: #ffffff;
+  --text-main: #111c2d;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+
+  --purple-light: #f3f0ff;
+  --purple-text: #6b46c1;
+  --purple-border: #805ad5;
+
+  --blue-light: #ebf8ff;
+  --blue-text: #3182ce;
+
+  --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+/* Header Sections */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.page-header h2 {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Interactive Buttons */
+button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.1s ease;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: var(--text-main);
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* Pseudo-icons for button crispness */
+.btn-icon-plus::before {
+  content: "+";
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.btn-icon-play::before {
+  content: "▶";
+  font-size: 10px;
+}
+
+/* Dashboard Layout Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.card {
+  background-color: var(--surface);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Left Board Panel */
+.commitment-card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h3 {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.badge {
+  background-color: #f1f5f9;
+  color: var(--text-muted);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+/* Main Focus Block */
+.main-outcome {
+  background-color: #f8faff;
+  border-left: 4px solid var(--primary);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.main-outcome h4 {
+  font-size: 18px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.main-outcome p {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Checklist Items */
+.supporting-tasks {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.task-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  margin-top: 2px;
+  cursor: pointer;
+  background-color: var(--surface);
+}
+
+.task-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.task-title {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.task-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Right Widgets Area */
+.col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Radial Capacity Indicator */
+.capacity-card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.progress-circle-container {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 20px 0;
+}
+
+.progress-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+  fill: none;
+  stroke: #f1f5f9;
+  stroke-width: 8;
+}
+
+.progress-ring-fill {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 8;
+  stroke-dasharray: 251;
+  stroke-dashoffset: 37;
+  stroke-linecap: round;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.capacity-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Yesterday's Roll-over Component */
+.recovery-card {
+  border-top: 4px solid var(--purple-border);
+}
+
+.recovery-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.recovery-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.recovery-icon {
+  color: var(--purple-border);
+}
+
+.recovery-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.recovery-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recovery-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #fafafa;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.radio-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.recovery-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recovery-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Micro Badges */
+.tag {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.tag-purple {
+  background-color: var(--purple-light);
+  color: var(--purple-text);
+}
+
+.tag-blue {
+  background-color: var(--blue-light);
+  color: var(--blue-text);
+}

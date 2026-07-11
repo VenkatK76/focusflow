@@ -1,0 +1,77 @@
+/* Sidebar.css */
+.sidebar {
+    width: 260px;
+    background-color: var(--bg-color);
+    padding: 24px 16px;
+    border-right: 1px solid var(--border-color);
+    /* Ensure sidebar takes full height and sticks to the left if content scrolls */
+    /* position: sticky; */
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+    padding: 0 16px;
+}
+
+.brand-icon {
+    background-color: var(--primary);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brand-text h1 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.brand-text p {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+    background-color: rgba(0, 108, 73, 0.05);
+    color: var(--primary);
+}
+
+.nav-item.active {
+    background-color: var(--primary-light);
+    color: var(--primary);
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    border-left: 3px solid var(--primary);
+}
+
+.sidebar-footer {
+    position: fixed;
+    bottom: 0;
+}
