@@ -52,7 +52,7 @@ const App: React.FC = () => {
           }
         />
         <Route
-          path="/clarify-task"
+          path="/clarify-task/:taskId"
           element={
             <ProtectedRoute>
               <TaskClarification />

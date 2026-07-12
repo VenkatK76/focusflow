@@ -224,3 +224,15 @@
     gap: 8px;
     cursor: pointer;
 }
+
+.task-form-message {
+    color: #64748b;
+    font-size: 0.95rem;
+    padding: 24px 0;
+}
+
+.task-form-error {
+    color: #b42318;
+    font-size: 0.875rem;
+    margin: 0 0 16px;
+}

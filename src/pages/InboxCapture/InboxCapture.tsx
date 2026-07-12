@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { Image as ImageIcon, Link, Mic, Send, Circle, Clock } from 'lucide-react';
 import { createInboxTask, getInboxTasks, type InboxTask } from '../../lib/tasks';
@@ -33,6 +34,8 @@ function formatRelativeTime(dateString: string) {
 }
 
 const InboxCapture: React.FC = () => {
+    const navigate = useNavigate();
+
     const [captureText, setCaptureText] = useState('');
     const [inboxItems, setInboxItems] = useState<InboxTask[]>([]);
     const [loading, setLoading] = useState(true);
@@ -83,6 +86,10 @@ const InboxCapture: React.FC = () => {
         }
     }
 
+    function openClarification(taskId: string) {
+        navigate(`/clarify-task/${taskId}`);
+    }
+
     return (
         <AppLayout>
             <div className="inbox-container">
@@ -118,6 +125,7 @@ const InboxCapture: React.FC = () => {
                                 <Mic size={18} />
                             </button>
                         </div>
+
                         <button
                             type="button"
                             className="btn-primary"
@@ -150,7 +158,18 @@ const InboxCapture: React.FC = () => {
                     )}
 
                     {!loading && inboxItems.map((item) => (
-                        <div key={item.id} className="inbox-item-card">
+                        <div
+                            key={item.id}
+                            className="inbox-item-card"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => openClarification(item.id)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    openClarification(item.id);
+                                }
+                            }}
+                        >
                             <div className="inbox-item-checkbox">
                                 <Circle size={20} className="radio-icon" />
                             </div>
