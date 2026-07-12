@@ -35,6 +35,72 @@ export type CreateProjectInput = {
     outcome?: string;
 };
 
+export type ProjectTask = {
+    id: string;
+    title: string;
+    next_action: string | null;
+    why_it_matters: string | null;
+    status: string;
+    scheduled_for: string | null;
+    estimated_minutes: number | null;
+    energy_required: string | null;
+    context: string | null;
+    created_at: string;
+    updated_at: string;
+};
+
+export async function getProjectById(projectId: string): Promise<Project> {
+    const { data, error } = await supabase
+        .from('projects')
+        .select(`
+      id,
+      user_id,
+      name,
+      outcome,
+      description,
+      status,
+      deadline,
+      created_at,
+      updated_at,
+      completed_at
+    `)
+        .eq('id', projectId)
+        .single();
+
+    if (error) {
+        throw error;
+    }
+
+    return data as Project;
+}
+
+export async function getProjectTasks(projectId: string): Promise<ProjectTask[]> {
+    const { data, error } = await supabase
+        .from('tasks')
+        .select(`
+      id,
+      title,
+      next_action,
+      why_it_matters,
+      status,
+      scheduled_for,
+      estimated_minutes,
+      energy_required,
+      context,
+      created_at,
+      updated_at
+    `)
+        .eq('project_id', projectId)
+        .neq('status', 'archived')
+        .order('updated_at', { ascending: false });
+
+    if (error) {
+        throw error;
+    }
+
+    return data ?? [];
+}
+
 function calculateProjectStats(
     project: Project,
     tasks: ProjectTaskCountRow[]

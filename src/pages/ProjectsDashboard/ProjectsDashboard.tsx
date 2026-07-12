@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { Rocket, BookOpen, Building2, MoreVertical, Plus } from 'lucide-react';
 import {
@@ -32,6 +33,8 @@ const ProjectsDashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+
+    const navigate = useNavigate();
 
     async function loadProjects(tab = activeTab) {
         setLoading(true);
@@ -222,7 +225,18 @@ const ProjectsDashboard: React.FC = () => {
                                 const theme = getProjectTheme(index);
 
                                 return (
-                                    <div key={project.id} className="project-card">
+                                    <div
+                                        key={project.id}
+                                        className="project-card"
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => navigate(`/projects/${project.id}`)}
+                                        onKeyDown={(event) => {
+                                            if (event.key === 'Enter') {
+                                                navigate(`/projects/${project.id}`);
+                                            }
+                                        }}
+                                    >
                                         <div className="project-card-header">
                                             <div className={`project-icon bg-${theme}`}>
                                                 <Icon size={18} className={`text-${theme}`} />
@@ -233,7 +247,10 @@ const ProjectsDashboard: React.FC = () => {
                                                     type="button"
                                                     className="icon-btn"
                                                     title="Archive project"
-                                                    onClick={() => handleArchiveProject(project.id)}
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleArchiveProject(project.id);
+                                                    }}
                                                     disabled={saving}
                                                 >
                                                     <MoreVertical size={18} />

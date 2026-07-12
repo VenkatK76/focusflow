@@ -9,6 +9,7 @@ import ProjectsDashboard from './pages/ProjectsDashboard/ProjectsDashboard';
 import FocusWorkspace from './pages/FocusWorkspace/FocusWorkspace';
 import TaskClarification from './pages/TaskClarification/TaskClarification';
 import ReviewPage from './pages/ReviewPage/ReviewPage';
+import ProjectDetail from './pages/ProjectDetail/ProjectDetail';
 
 const App: React.FC = () => {
   return (
@@ -75,8 +76,17 @@ const App: React.FC = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/projects/:projectId"
+          element={
+            <ProtectedRoute>
+              <ProjectDetail />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
+
   );
 };
 
