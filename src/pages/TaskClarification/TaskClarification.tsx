@@ -9,6 +9,10 @@ import {
     type ClarifyTaskInput,
     type TaskDetail,
 } from '../../lib/tasks';
+import {
+    getProjectsByStatus,
+    type ProjectWithStats,
+} from '../../lib/projects';
 import './TaskClarification.css';
 
 type DurationOption = '15m' | '30m' | '1h' | '2h+';
@@ -78,9 +82,11 @@ const TaskClarification: React.FC = () => {
     const [whyItMatters, setWhyItMatters] = useState('');
     const [duration, setDuration] = useState<DurationOption>('30m');
     const [energy, setEnergy] = useState<EnergyOption>('Medium');
-    const [project, setProject] = useState('Work');
     const [context, setContext] = useState<ContextOption>('Deep Work');
     const [possibleBlocker, setPossibleBlocker] = useState('None');
+
+    const [projects, setProjects] = useState<ProjectWithStats[]>([]);
+    const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -98,9 +104,14 @@ const TaskClarification: React.FC = () => {
             setErrorMessage('');
 
             try {
-                const taskData = await getTaskById(taskId);
+                const [taskData, activeProjects] = await Promise.all([
+                    getTaskById(taskId),
+                    getProjectsByStatus('active'),
+                ]);
 
                 setTask(taskData);
+                setProjects(activeProjects);
+                setSelectedProjectId(taskData.project_id);
                 setNextAction(taskData.next_action ?? '');
                 setWhyItMatters(taskData.why_it_matters ?? '');
                 setDuration(minutesToDuration(taskData.estimated_minutes));
@@ -135,6 +146,7 @@ const TaskClarification: React.FC = () => {
             const updatedTask = await clarifyTask(taskId, {
                 next_action: nextAction,
                 why_it_matters: whyItMatters,
+                project_id: selectedProjectId,
                 estimated_minutes: durationToMinutes(duration),
                 energy_required: energyToDbValue(energy),
                 context: contextToDbValue(context),
@@ -318,19 +330,35 @@ const TaskClarification: React.FC = () => {
 
                                     <div className="param-group">
                                         <label className="sub-label">Project</label>
+
                                         <div className="pill-group">
-                                            {['Work', 'Personal', 'Side Project'].map((val) => (
+                                            <button
+                                                type="button"
+                                                className={`pill-btn ${selectedProjectId === null ? 'active-outline' : ''}`}
+                                                onClick={() => setSelectedProjectId(null)}
+                                                disabled={saving}
+                                            >
+                                                No Project
+                                            </button>
+
+                                            {projects.map((project) => (
                                                 <button
                                                     type="button"
-                                                    key={val}
-                                                    className={`pill-btn ${project === val ? 'active-outline' : ''}`}
-                                                    onClick={() => setProject(val)}
+                                                    key={project.id}
+                                                    className={`pill-btn ${selectedProjectId === project.id ? 'active-outline' : ''}`}
+                                                    onClick={() => setSelectedProjectId(project.id)}
                                                     disabled={saving}
                                                 >
-                                                    {val}
+                                                    {project.name}
                                                 </button>
                                             ))}
                                         </div>
+
+                                        {projects.length === 0 && (
+                                            <span className="help-text">
+                                                Create projects from the Projects page to organize this task.
+                                            </span>
+                                        )}
                                     </div>
 
                                     <div className="param-group">

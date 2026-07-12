@@ -209,3 +209,78 @@
     font-size: 14px;
     color: var(--text-muted, #64748b);
 }
+
+.projects-error-message {
+    color: #b42318;
+    font-size: 0.875rem;
+    margin-bottom: 16px;
+}
+
+.projects-empty-message {
+    color: var(--text-muted, #64748b);
+    font-size: 0.95rem;
+}
+
+.projects-empty-card {
+    border: 1px dashed #cbd5e1;
+    background-color: #f8faff;
+}
+
+.projects-empty-card h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.projects-empty-card p {
+    color: var(--text-muted, #64748b);
+    font-size: 14px;
+}
+
+.project-recovery-note {
+    color: #6b46c1;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.new-project-form {
+    gap: 16px;
+}
+
+.project-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.project-form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main, #111c2d);
+}
+
+.project-form-group input,
+.project-form-group textarea {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--text-main, #111c2d);
+    outline: none;
+}
+
+.project-form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.project-form-group input:focus,
+.project-form-group textarea:focus {
+    border-color: var(--primary, #006c49);
+}
+
+.project-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: auto;
+}

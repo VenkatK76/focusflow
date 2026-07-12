@@ -10,6 +10,8 @@ export type InboxTask = {
 
 export type TaskDetail = {
     id: string;
+    user_id?: string;
+    project_id: string | null;
     title: string;
     description: string | null;
     next_action: string | null;
@@ -39,6 +41,7 @@ export type TaskDetail = {
 export type ClarifyTaskInput = {
     next_action: string;
     why_it_matters?: string;
+    project_id?: string | null;
     estimated_minutes?: number | null;
     energy_required?: 'low' | 'medium' | 'high' | null;
     context?: 'deep_work' | 'admin' | 'errand' | 'communication' | 'learning' | null;
@@ -185,6 +188,7 @@ export async function getTaskById(taskId: string): Promise<TaskDetail> {
         .from('tasks')
         .select(`
       id,
+      project_id,
       title,
       description,
       next_action,
@@ -225,6 +229,7 @@ export async function clarifyTask(
         .update({
             next_action: cleanedNextAction,
             why_it_matters: input.why_it_matters?.trim() || null,
+            project_id: input.project_id ?? null,
             estimated_minutes: input.estimated_minutes ?? null,
             energy_required: input.energy_required ?? null,
             context: input.context ?? null,
@@ -234,6 +239,7 @@ export async function clarifyTask(
         .eq('id', taskId)
         .select(`
       id,
+      project_id,
       title,
       description,
       next_action,
