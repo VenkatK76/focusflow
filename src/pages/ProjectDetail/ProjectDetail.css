@@ -125,10 +125,9 @@
 .project-task-row {
     width: 100%;
     background: transparent;
-    border: none;
     border-bottom: 1px solid #f1f5f9;
-    border-radius: 0;
-    padding: 16px 0;
+    border-radius: 8px;
+    padding: 16px 8px;
     display: flex;
     align-items: flex-start;
     gap: 14px;
@@ -139,52 +138,19 @@
     border-bottom: none;
 }
 
-.project-task-row:hover:not(:disabled) {
+.project-task-row[role="button"] {
+    cursor: pointer;
+}
+
+.project-task-row[role="button"]:hover {
     background: #f8faff;
 }
 
-.project-task-row:disabled {
+.project-task-row.done {
     cursor: default;
     opacity: 0.75;
 }
 
-.project-task-icon {
-    color: #94a3b8;
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-.project-task-icon.done {
-    color: #006c49;
-}
-
-.project-task-icon.recovery {
-    color: #6b46c1;
-}
-
-.project-task-icon.planned {
-    color: #3182ce;
-}
-
 .project-task-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.project-task-title {
-    color: var(--text-main, #111c2d);
-    font-size: 15px;
-    font-weight: 600;
-}
-
-.project-task-meta {
-    color: var(--text-muted, #64748b);
-    font-size: 12px;
-}
-
-.project-task-why {
-    color: var(--text-muted, #64748b);
-    font-size: 13px;
-    line-height: 1.4;
+    flex: 1;
 }

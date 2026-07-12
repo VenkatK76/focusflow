@@ -379,3 +379,33 @@ button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+.task-item-clickable {
+  cursor: pointer;
+  border-radius: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.task-item-clickable:hover {
+  background-color: #f8faff;
+}
+
+.task-details {
+  flex: 1;
+}
+
+.task-focus-button {
+  margin-left: auto;
+  background-color: var(--primary-light, #e6f3ef);
+  color: var(--primary, #006c49);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.task-focus-button:hover {
+  background-color: var(--primary, #006c49);
+  color: white;
+}

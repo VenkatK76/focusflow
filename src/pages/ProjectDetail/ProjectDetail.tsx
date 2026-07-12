@@ -122,16 +122,15 @@ const ProjectDetail: React.FC = () => {
     }, [tasks]);
 
     function openTask(task: ProjectTask) {
-        if (task.status === 'planned' || task.status === 'active') {
-            navigate(`/focus/${task.id}`);
-            return;
-        }
-
         if (task.status === 'done') {
             return;
         }
 
         navigate(`/clarify-task/${task.id}`);
+    }
+
+    function startFocus(task: ProjectTask) {
+        navigate(`/focus/${task.id}`);
     }
 
     return (
@@ -216,12 +215,17 @@ const ProjectDetail: React.FC = () => {
                             )}
 
                             {tasks.map((task) => (
-                                <button
-                                    type="button"
+                                <div
                                     key={task.id}
-                                    className="project-task-row"
+                                    className={`project-task-row ${task.status === 'done' ? 'done' : ''}`}
+                                    role={task.status === 'done' ? undefined : 'button'}
+                                    tabIndex={task.status === 'done' ? undefined : 0}
                                     onClick={() => openTask(task)}
-                                    disabled={task.status === 'done'}
+                                    onKeyDown={(event) => {
+                                        if (event.key === 'Enter') {
+                                            openTask(task);
+                                        }
+                                    }}
                                 >
                                     {getStatusIcon(task.status)}
 
@@ -240,7 +244,20 @@ const ProjectDetail: React.FC = () => {
                                             </span>
                                         )}
                                     </div>
-                                </button>
+
+                                    {task.status !== 'done' && (
+                                        <button
+                                            type="button"
+                                            className="project-task-focus-button"
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                startFocus(task);
+                                            }}
+                                        >
+                                            Focus
+                                        </button>
+                                    )}
+                                </div>
                             ))}
                         </section>
                     </>

@@ -228,8 +228,20 @@ const CommitmentBoard: React.FC = () => {
                     <span className="section-label">SUPPORTING TASKS</span>
 
                     {todayItems.map((item) => (
-                      <div key={item.plan_item_id} className="task-item">
+                      <div
+                        key={item.plan_item_id}
+                        className="task-item task-item-clickable"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => navigate(`/clarify-task/${item.task_id}`)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            navigate(`/clarify-task/${item.task_id}`);
+                          }
+                        }}
+                      >
                         <div className="task-checkbox"></div>
+
                         <div className="task-details">
                           <span className="task-title">
                             {item.next_action || item.title}
@@ -239,6 +251,17 @@ const CommitmentBoard: React.FC = () => {
                             {item.project_name ? ` · ${item.project_name}` : ''}
                           </span>
                         </div>
+
+                        <button
+                          type="button"
+                          className="task-focus-button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            navigate(`/focus/${item.task_id}`);
+                          }}
+                        >
+                          Focus
+                        </button>
                       </div>
                     ))}
                   </div>
