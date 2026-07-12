@@ -52,6 +52,14 @@ const App: React.FC = () => {
           }
         />
         <Route
+          path="/focus/:taskId"
+          element={
+            <ProtectedRoute>
+              <FocusWorkspace />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/clarify-task/:taskId"
           element={
             <ProtectedRoute>

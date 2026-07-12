@@ -200,3 +200,39 @@
     font-size: 13px;
     color: #cbd5e1;
 }
+
+.focus-message {
+    color: var(--text-muted, #64748b);
+    font-size: 0.95rem;
+}
+
+.focus-error-message {
+    color: #b42318;
+    font-size: 0.875rem;
+}
+
+.focus-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+}
+
+.focus-empty-state h2 {
+    font-size: 22px;
+    color: var(--text-main, #111c2d);
+}
+
+.focus-empty-state p {
+    color: var(--text-muted, #64748b);
+    font-size: 14px;
+}
+
+.text-link:disabled,
+.btn-pause:disabled,
+.btn-complete:disabled,
+.round-bg:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}

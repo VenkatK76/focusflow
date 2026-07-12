@@ -114,6 +114,18 @@ type DailyPlanItemRow = {
     | null;
 };
 
+export type FocusSession = {
+    id: string;
+    user_id: string;
+    task_id: string;
+    started_at: string;
+    ended_at: string | null;
+    duration_minutes: number | null;
+    completed: boolean;
+    notes: string | null;
+    created_at: string;
+};
+
 export async function getInboxTasks(): Promise<InboxTask[]> {
     const { data, error } = await supabase
         .from('tasks')
@@ -345,4 +357,89 @@ export async function getNeedsRecoveryTasks(): Promise<RecoveryTask[]> {
     }
 
     return data ?? [];
+}
+
+function getRpcRow<T>(data: T | T[] | null): T {
+    if (Array.isArray(data)) {
+        if (!data[0]) {
+            throw new Error('No data returned from Supabase function.');
+        }
+
+        return data[0];
+    }
+
+    if (!data) {
+        throw new Error('No data returned from Supabase function.');
+    }
+
+    return data;
+}
+
+export async function getOpenFocusSessionForTask(
+    taskId: string
+): Promise<FocusSession | null> {
+    const { data, error } = await supabase
+        .from('focus_sessions')
+        .select(`
+      id,
+      user_id,
+      task_id,
+      started_at,
+      ended_at,
+      duration_minutes,
+      completed,
+      notes,
+      created_at
+    `)
+        .eq('task_id', taskId)
+        .is('ended_at', null)
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error) {
+        throw error;
+    }
+
+    return data;
+}
+
+export async function startFocusSession(taskId: string): Promise<FocusSession> {
+    const existingSession = await getOpenFocusSessionForTask(taskId);
+
+    if (existingSession) {
+        return existingSession;
+    }
+
+    const { data, error } = await supabase.rpc('start_focus_session', {
+        p_task_id: taskId,
+    });
+
+    if (error) {
+        throw error;
+    }
+
+    return getRpcRow<FocusSession>(data);
+}
+
+export async function finishFocusSession({
+    focusSessionId,
+    completedTask,
+    notes,
+}: {
+    focusSessionId: string;
+    completedTask: boolean;
+    notes?: string | null;
+}): Promise<FocusSession> {
+    const { data, error } = await supabase.rpc('finish_focus_session', {
+        p_focus_session_id: focusSessionId,
+        p_completed_task: completedTask,
+        p_notes: notes ?? null,
+    });
+
+    if (error) {
+        throw error;
+    }
+
+    return getRpcRow<FocusSession>(data);
 }
