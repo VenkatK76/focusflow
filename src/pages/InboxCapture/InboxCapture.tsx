@@ -1,29 +1,88 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { Image as ImageIcon, Link, Mic, Send, Circle, Clock } from 'lucide-react';
+import { createInboxTask, getInboxTasks, type InboxTask } from '../../lib/tasks';
 import './InboxCapture.css';
 
-// Mock data for the inbox items based on the design
-const INBOX_ITEMS = [
-    {
-        id: 1,
-        title: 'Review the Q3 marketing budget proposal and send feedback to Sarah before Friday.',
-        time: '2h ago',
-    },
-    {
-        id: 2,
-        title: 'Call plumber about the leaking sink in the kitchen.',
-        time: '5h ago',
-    },
-    {
-        id: 3,
-        title: "Draft outline for the upcoming 'Design Systems at Scale' presentation.",
-        time: 'Yesterday',
-        tag: 'Work',
-    },
-];
+function formatRelativeTime(dateString: string) {
+    const createdAt = new Date(dateString).getTime();
+    const now = Date.now();
+    const diffMs = now - createdAt;
+
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMinutes < 1) {
+        return 'Just now';
+    }
+
+    if (diffMinutes < 60) {
+        return `${diffMinutes}m ago`;
+    }
+
+    if (diffHours < 24) {
+        return `${diffHours}h ago`;
+    }
+
+    if (diffDays === 1) {
+        return 'Yesterday';
+    }
+
+    return `${diffDays}d ago`;
+}
 
 const InboxCapture: React.FC = () => {
+    const [captureText, setCaptureText] = useState('');
+    const [inboxItems, setInboxItems] = useState<InboxTask[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    async function loadInboxTasks() {
+        setLoading(true);
+        setErrorMessage('');
+
+        try {
+            const tasks = await getInboxTasks();
+            setInboxItems(tasks);
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Could not load inbox tasks.';
+
+            setErrorMessage(message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        loadInboxTasks();
+    }, []);
+
+    async function handleSave() {
+        setSaving(true);
+        setErrorMessage('');
+
+        try {
+            const newTask = await createInboxTask(captureText);
+
+            setInboxItems((currentItems) => [newTask, ...currentItems]);
+            setCaptureText('');
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Could not save task. Please try again.';
+
+            setErrorMessage(message);
+        } finally {
+            setSaving(false);
+        }
+    }
+
     return (
         <AppLayout>
             <div className="inbox-container">
@@ -42,29 +101,55 @@ const InboxCapture: React.FC = () => {
                         className="capture-input"
                         placeholder="Capture anything..."
                         rows={4}
+                        value={captureText}
+                        onChange={(event) => setCaptureText(event.target.value)}
+                        disabled={saving}
                     ></textarea>
 
                     <div className="capture-actions">
                         <div className="action-icons">
-                            <button className="icon-btn" aria-label="Add image">
+                            <button type="button" className="icon-btn" aria-label="Add image">
                                 <ImageIcon size={18} />
                             </button>
-                            <button className="icon-btn" aria-label="Add link">
+                            <button type="button" className="icon-btn" aria-label="Add link">
                                 <Link size={18} />
                             </button>
-                            <button className="icon-btn" aria-label="Record audio">
+                            <button type="button" className="icon-btn" aria-label="Record audio">
                                 <Mic size={18} />
                             </button>
                         </div>
-                        <button className="btn-primary">
-                            Save <Send size={14} className="send-icon" />
+                        <button
+                            type="button"
+                            className="btn-primary"
+                            onClick={handleSave}
+                            disabled={saving || !captureText.trim()}
+                        >
+                            {saving ? 'Saving...' : 'Save'} <Send size={14} className="send-icon" />
                         </button>
                     </div>
+
+                    {errorMessage && (
+                        <p className="inbox-error-message">
+                            {errorMessage}
+                        </p>
+                    )}
                 </div>
 
                 {/* Inbox Task List */}
                 <div className="inbox-list">
-                    {INBOX_ITEMS.map((item) => (
+                    {loading && (
+                        <p className="inbox-empty-message">
+                            Loading inbox...
+                        </p>
+                    )}
+
+                    {!loading && inboxItems.length === 0 && (
+                        <p className="inbox-empty-message">
+                            Your inbox is clear. Capture anything that needs your attention.
+                        </p>
+                    )}
+
+                    {!loading && inboxItems.map((item) => (
                         <div key={item.id} className="inbox-item-card">
                             <div className="inbox-item-checkbox">
                                 <Circle size={20} className="radio-icon" />
@@ -74,11 +159,8 @@ const InboxCapture: React.FC = () => {
                                 <div className="inbox-item-meta">
                                     <div className="meta-time">
                                         <Clock size={12} />
-                                        <span>{item.time}</span>
+                                        <span>{formatRelativeTime(item.created_at)}</span>
                                     </div>
-                                    {item.tag && (
-                                        <span className="tag tag-blue">{item.tag}</span>
-                                    )}
                                 </div>
                             </div>
                         </div>

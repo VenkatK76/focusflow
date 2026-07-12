@@ -1,7 +1,8 @@
 import React from 'react';
-import { NavLink, Link } from 'react-router-dom';
-import { Calendar, Folder, Inbox, Target, BarChart2, Settings, Leaf, Plus } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { Calendar, Folder, Inbox, Target, BarChart2, Settings, Leaf } from 'lucide-react';
 import './Sidebar.css';
+import LogoutButton from '../auth/LogoutButton';
 
 const NAV_ITEMS = [
     { name: 'Today', icon: Calendar, path: '/today' },
@@ -43,10 +44,11 @@ export const Sidebar: React.FC = () => {
             </div>
 
             <div className="sidebar-footer">
-                <Link to="/new-task" className="new-task-btn">
+                {/* <Link to="/new-task" className="new-task-btn">
                     <Plus size={18} />
                     <span>New Task</span>
-                </Link>
+                </Link> */}
+                <LogoutButton className="sidebar-logout-button" />
             </div>
         </aside>
     );
