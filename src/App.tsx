@@ -10,6 +10,7 @@ import FocusWorkspace from './pages/FocusWorkspace/FocusWorkspace';
 import TaskClarification from './pages/TaskClarification/TaskClarification';
 import ReviewPage from './pages/ReviewPage/ReviewPage';
 import ProjectDetail from './pages/ProjectDetail/ProjectDetail';
+import SettingsPage from './pages/Settings/SettingsPage';
 
 const App: React.FC = () => {
   return (
@@ -81,6 +82,14 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <ProjectDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
             </ProtectedRoute>
           }
         />
