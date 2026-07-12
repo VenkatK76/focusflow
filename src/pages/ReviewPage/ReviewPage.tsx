@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppLayout } from '../../components/layout/AppLayout';
-import { CheckCircle, Clock, ArrowRight, Sun } from 'lucide-react';
+import { CheckCircle, ArrowRight, Sun } from 'lucide-react';
 import './ReviewPage.css';
 
 const ReviewPage: React.FC = () => {

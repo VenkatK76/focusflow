@@ -1,0 +1,126 @@
+/* SignupPage.css */
+.signup-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #f8faff;
+    /* Light background for the whole page */
+    padding: 24px;
+}
+
+.signup-card {
+    background: #ffffff;
+    max-width: 440px;
+    width: 100%;
+    border-radius: 16px;
+    padding: 48px 40px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+    text-align: center;
+}
+
+/* Header */
+.signup-header {
+    margin-bottom: 36px;
+}
+
+.brand-icon-circle {
+    background-color: #f1f5f9;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+}
+
+.signup-header h1 {
+    font-size: 26px;
+    color: #111c2d;
+    margin-bottom: 12px;
+    line-height: 1.3;
+    font-weight: 700;
+}
+
+.signup-header p {
+    font-size: 15px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+/* Form Styles */
+.signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: left;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.input-group input {
+    background-color: #f8fafc;
+    border: 1px solid transparent;
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #111c2d;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.input-group input::placeholder {
+    color: #94a3b8;
+    opacity: 0.6;
+}
+
+.input-group input:focus {
+    border-color: #10b981;
+    /* Focus ring color */
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Submit Button */
+.btn-signup {
+    background-color: #10b981;
+    /* Slightly brighter green for primary CTA */
+    color: #ffffff;
+    border: none;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 8px;
+}
+
+.btn-signup:hover {
+    background-color: #059669;
+}
+
+.auth-message {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.auth-message-error {
+    color: #b42318;
+}
+
+.auth-message-success {
+    color: #006c49;
+}

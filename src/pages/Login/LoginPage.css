@@ -1,0 +1,154 @@
+/* LoginPage.css */
+.login-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #f8faff;
+    padding: 24px;
+}
+
+.login-card {
+    background: #ffffff;
+    max-width: 440px;
+    width: 100%;
+    border-radius: 12px;
+    padding: 48px 40px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f1f5f9;
+}
+
+/* Header */
+.login-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.login-header h1 {
+    font-size: 32px;
+    color: #006c49;
+    /* Dark green brand color */
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.login-header p {
+    font-size: 15px;
+    color: #64748b;
+}
+
+/* Form Styles */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.input-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.forgot-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: #006c49;
+    text-decoration: none;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+}
+
+.input-group input {
+    background-color: #f8fafc;
+    border: 1px solid transparent;
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #111c2d;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.input-group input::placeholder {
+    color: #94a3b8;
+    opacity: 0.6;
+}
+
+.input-group input:focus {
+    border-color: #006c49;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 108, 73, 0.1);
+}
+
+/* Checkbox */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    background-color: #f8fafc;
+    cursor: pointer;
+    accent-color: #006c49;
+}
+
+.checkbox-group label {
+    font-size: 14px;
+    color: #475569;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+/* Submit Button */
+.btn-signin {
+    background-color: #006c49;
+    color: #ffffff;
+    border: none;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-signin:hover {
+    background-color: #005a3c;
+}
+
+.login-divider {
+    border: none;
+    border-top: 1px solid #f1f5f9;
+    margin-top: 32px;
+}
+
+.auth-message {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.auth-message-error {
+    color: #b42318;
+}
