@@ -55,6 +55,65 @@ export type ClarifyTaskInput = {
     | null;
 };
 
+export type TodayPlanTask = {
+    plan_item_id: string;
+    task_id: string;
+    title: string;
+    next_action: string | null;
+    why_it_matters: string | null;
+    status: string;
+    estimated_minutes: number | null;
+    context: string | null;
+    energy_required: string | null;
+    order_index: number;
+    commitment_level: 'must' | 'should' | 'could';
+    project_name: string | null;
+};
+
+export type TodayPlan = {
+    id: string;
+    plan_date: string;
+    main_outcome: string | null;
+    planned_minutes: number;
+    completed_minutes: number;
+    status: string;
+    items: TodayPlanTask[];
+};
+
+export type RecoveryTask = {
+    id: string;
+    title: string;
+    next_action: string | null;
+    status: string;
+    context: string | null;
+    estimated_minutes: number | null;
+    updated_at: string;
+};
+
+type DailyPlanItemRow = {
+    id: string;
+    order_index: number;
+    commitment_level: 'must' | 'should' | 'could';
+    tasks:
+    | {
+        id: string;
+        title: string;
+        next_action: string | null;
+        why_it_matters: string | null;
+        status: string;
+        estimated_minutes: number | null;
+        context: string | null;
+        energy_required: string | null;
+        projects:
+        | {
+            id: string;
+            name: string;
+        }
+        | null;
+    }
+    | null;
+};
+
 export async function getInboxTasks(): Promise<InboxTask[]> {
     const { data, error } = await supabase
         .from('tasks')
@@ -194,4 +253,96 @@ export async function addTaskToToday(taskId: string) {
     }
 
     return data;
+}
+
+export async function getTodayPlan(
+    planDate = getLocalDateString()
+): Promise<TodayPlan | null> {
+    const { data: plan, error: planError } = await supabase
+        .from('daily_plans')
+        .select('id, plan_date, main_outcome, planned_minutes, completed_minutes, status')
+        .eq('plan_date', planDate)
+        .maybeSingle();
+
+    if (planError) {
+        throw planError;
+    }
+
+    if (!plan) {
+        return null;
+    }
+
+    const { data: rows, error: itemsError } = await supabase
+        .from('daily_plan_items')
+        .select(`
+      id,
+      order_index,
+      commitment_level,
+      tasks (
+        id,
+        title,
+        next_action,
+        why_it_matters,
+        status,
+        estimated_minutes,
+        context,
+        energy_required,
+        projects (
+          id,
+          name
+        )
+      )
+    `)
+        .eq('daily_plan_id', plan.id)
+        .order('order_index', { ascending: true });
+
+    if (itemsError) {
+        throw itemsError;
+    }
+
+    const items: TodayPlanTask[] = ((rows ?? []) as unknown as DailyPlanItemRow[])
+        .filter((row) => row.tasks)
+        .map((row) => {
+            const task = row.tasks!;
+
+            return {
+                plan_item_id: row.id,
+                task_id: task.id,
+                title: task.title,
+                next_action: task.next_action,
+                why_it_matters: task.why_it_matters,
+                status: task.status,
+                estimated_minutes: task.estimated_minutes,
+                context: task.context,
+                energy_required: task.energy_required,
+                order_index: row.order_index,
+                commitment_level: row.commitment_level,
+                project_name: task.projects?.name ?? null,
+            };
+        });
+
+    return {
+        id: plan.id,
+        plan_date: plan.plan_date,
+        main_outcome: plan.main_outcome,
+        planned_minutes: plan.planned_minutes,
+        completed_minutes: plan.completed_minutes,
+        status: plan.status,
+        items,
+    };
+}
+
+export async function getNeedsRecoveryTasks(): Promise<RecoveryTask[]> {
+    const { data, error } = await supabase
+        .from('tasks')
+        .select('id, title, next_action, status, context, estimated_minutes, updated_at')
+        .eq('status', 'needs_recovery')
+        .order('updated_at', { ascending: false })
+        .limit(5);
+
+    if (error) {
+        throw error;
+    }
+
+    return data ?? [];
 }

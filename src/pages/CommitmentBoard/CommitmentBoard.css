@@ -345,3 +345,37 @@ button:active {
   background-color: var(--blue-light);
   color: var(--blue-text);
 }
+
+.today-error-message {
+  color: #b42318;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+.today-empty-message {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.today-empty-state {
+  background-color: #f8faff;
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.today-empty-state h4 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.today-empty-state p {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
