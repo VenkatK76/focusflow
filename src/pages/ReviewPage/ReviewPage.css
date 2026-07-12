@@ -112,3 +112,44 @@ textarea {
     border-color: #006c49;
     color: #006c49;
 }
+
+.review-error-message {
+    color: #b42318;
+    font-size: 0.875rem;
+}
+
+.review-success-message {
+    color: #006c49;
+    font-size: 0.875rem;
+}
+
+.review-empty-message {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin-top: 12px;
+}
+
+.reason-select {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: #475569;
+    background: white;
+}
+
+.action-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.btn-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-close-day:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

@@ -126,6 +126,23 @@ export type FocusSession = {
     created_at: string;
 };
 
+export type DailyReview = {
+    id: string;
+    user_id: string;
+    plan_date: string;
+    completed_count: number;
+    unfinished_count: number;
+    main_blocker: string | null;
+    reflection: string | null;
+    created_at: string;
+};
+
+export type TodayReviewData = {
+    completedTasks: TodayPlanTask[];
+    unfinishedTasks: TodayPlanTask[];
+};
+
+
 export async function getInboxTasks(): Promise<InboxTask[]> {
     const { data, error } = await supabase
         .from('tasks')
@@ -442,4 +459,76 @@ export async function finishFocusSession({
     }
 
     return getRpcRow<FocusSession>(data);
+}
+
+export async function getTodayReviewData(): Promise<TodayReviewData> {
+    const todayPlan = await getTodayPlan();
+
+    const todayItems = todayPlan?.items ?? [];
+
+    const completedTasks = todayItems.filter((item) => item.status === 'done');
+
+    const unfinishedTasks = todayItems.filter((item) => {
+        return item.status !== 'done' && item.status !== 'archived';
+    });
+
+    return {
+        completedTasks,
+        unfinishedTasks,
+    };
+}
+
+export async function markTaskNeedsRecovery(taskId: string) {
+    const { data, error } = await supabase
+        .from('tasks')
+        .update({
+            status: 'needs_recovery',
+        })
+        .eq('id', taskId)
+        .select(`
+      id,
+      title,
+      description,
+      next_action,
+      why_it_matters,
+      status,
+      scheduled_for,
+      due_at,
+      estimated_minutes,
+      actual_minutes,
+      energy_required,
+      context,
+      friction_type,
+      created_at,
+      updated_at
+    `)
+        .single();
+
+    if (error) {
+        throw error;
+    }
+
+    return data as TaskDetail;
+}
+
+export async function closeTodayWithReview({
+    mainBlocker,
+    reflection,
+}: {
+    mainBlocker?: string | null;
+    reflection?: string | null;
+}): Promise<DailyReview> {
+    const today = getLocalDateString();
+
+    const { data, error } = await supabase.rpc('close_daily_plan_with_review', {
+        p_plan_date: today,
+        p_main_blocker: mainBlocker?.trim() || null,
+        p_reflection: reflection?.trim() || null,
+    });
+
+    if (error) {
+        throw error;
+    }
+
+    return getRpcRow<DailyReview>(data);
 }
