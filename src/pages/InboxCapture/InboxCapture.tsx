@@ -2,7 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { Image as ImageIcon, Link, Mic, Send, Circle, Clock } from 'lucide-react';
-import { createInboxTask, getInboxTasks, type InboxTask } from '../../lib/tasks';
+import {
+    addTaskToToday,
+    createInboxTask,
+    getInboxTasks,
+    getReadyToPlanTasks,
+    type InboxTask,
+    type ReadyToPlanTask,
+} from '../../lib/tasks';
 import './InboxCapture.css';
 
 function formatRelativeTime(dateString: string) {
@@ -33,13 +40,51 @@ function formatRelativeTime(dateString: string) {
     return `${diffDays}d ago`;
 }
 
+function formatMinutes(minutes: number | null) {
+    if (!minutes) {
+        return 'No estimate';
+    }
+
+    if (minutes < 60) {
+        return `${minutes}m`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    if (remainingMinutes === 0) {
+        return `${hours}h`;
+    }
+
+    return `${hours}h ${remainingMinutes}m`;
+}
+
+function formatContext(context: string | null) {
+    if (!context) {
+        return 'Task';
+    }
+
+    const labels: Record<string, string> = {
+        deep_work: 'Deep Work',
+        admin: 'Admin',
+        errand: 'Errand',
+        communication: 'Communication',
+        learning: 'Learning',
+    };
+
+    return labels[context] ?? context;
+}
+
 const InboxCapture: React.FC = () => {
     const navigate = useNavigate();
 
     const [captureText, setCaptureText] = useState('');
     const [inboxItems, setInboxItems] = useState<InboxTask[]>([]);
+    const [readyToPlanItems, setReadyToPlanItems] = useState<ReadyToPlanTask[]>([]);
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [planningTaskId, setPlanningTaskId] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
 
     async function loadInboxTasks() {
@@ -47,8 +92,13 @@ const InboxCapture: React.FC = () => {
         setErrorMessage('');
 
         try {
-            const tasks = await getInboxTasks();
+            const [tasks, readyTasks] = await Promise.all([
+                getInboxTasks(),
+                getReadyToPlanTasks(),
+            ]);
+
             setInboxItems(tasks);
+            setReadyToPlanItems(readyTasks);
         } catch (error) {
             const message =
                 error instanceof Error
@@ -83,6 +133,28 @@ const InboxCapture: React.FC = () => {
             setErrorMessage(message);
         } finally {
             setSaving(false);
+        }
+    }
+
+    async function handleAddReadyTaskToToday(taskId: string) {
+        setPlanningTaskId(taskId);
+        setErrorMessage('');
+
+        try {
+            await addTaskToToday(taskId);
+
+            setReadyToPlanItems((currentItems) =>
+                currentItems.filter((item) => item.id !== taskId)
+            );
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Could not add task to today.';
+
+            setErrorMessage(message);
+        } finally {
+            setPlanningTaskId(null);
         }
     }
 
@@ -143,8 +215,15 @@ const InboxCapture: React.FC = () => {
                     )}
                 </div>
 
-                {/* Inbox Task List */}
+                {/* Capture Inbox */}
                 <div className="inbox-list">
+                    <div className="inbox-section-header">
+                        <h3>Capture Inbox</h3>
+                        <span>
+                            {inboxItems.length} {inboxItems.length === 1 ? 'item' : 'items'}
+                        </span>
+                    </div>
+
                     {loading && (
                         <p className="inbox-empty-message">
                             Loading inbox...
@@ -153,7 +232,7 @@ const InboxCapture: React.FC = () => {
 
                     {!loading && inboxItems.length === 0 && (
                         <p className="inbox-empty-message">
-                            Your inbox is clear. Capture anything that needs your attention.
+                            Your capture inbox is clear. Capture anything that needs your attention.
                         </p>
                     )}
 
@@ -182,6 +261,76 @@ const InboxCapture: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Ready to Plan */}
+                <div className="inbox-list ready-to-plan-list">
+                    <div className="inbox-section-header">
+                        <h3>Ready to Plan</h3>
+                        <span>
+                            {readyToPlanItems.length} {readyToPlanItems.length === 1 ? 'item' : 'items'}
+                        </span>
+                    </div>
+
+                    {!loading && readyToPlanItems.length === 0 && (
+                        <p className="inbox-empty-message">
+                            Clarified tasks will appear here before you add them to today.
+                        </p>
+                    )}
+
+                    {!loading && readyToPlanItems.map((item) => (
+                        <div
+                            key={item.id}
+                            className="inbox-item-card ready-to-plan-card"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => openClarification(item.id)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    openClarification(item.id);
+                                }
+                            }}
+                        >
+                            <div className="inbox-item-checkbox">
+                                <Circle size={20} className="radio-icon" />
+                            </div>
+
+                            <div className="inbox-item-content">
+                                <p className="inbox-item-title">
+                                    {item.next_action || item.title}
+                                </p>
+
+                                <div className="inbox-item-meta">
+                                    <div className="meta-time">
+                                        <Clock size={12} />
+                                        <span>{formatRelativeTime(item.updated_at)}</span>
+                                    </div>
+
+                                    <span className="ready-meta">
+                                        {formatMinutes(item.estimated_minutes)} · {formatContext(item.context)}
+                                    </span>
+                                </div>
+
+                                {item.why_it_matters && (
+                                    <p className="ready-why">
+                                        {item.why_it_matters}
+                                    </p>
+                                )}
+                            </div>
+
+                            <button
+                                type="button"
+                                className="ready-plan-button"
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleAddReadyTaskToToday(item.id);
+                                }}
+                                disabled={planningTaskId === item.id}
+                            >
+                                {planningTaskId === item.id ? 'Adding...' : 'Add to Today'}
+                            </button>
                         </div>
                     ))}
                 </div>

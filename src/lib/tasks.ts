@@ -538,3 +538,43 @@ export async function closeTodayWithReview({
 
     return getRpcRow<DailyReview>(data);
 }
+
+export type ReadyToPlanTask = {
+    id: string;
+    title: string;
+    next_action: string | null;
+    why_it_matters: string | null;
+    status: string;
+    estimated_minutes: number | null;
+    context: string | null;
+    energy_required: string | null;
+    project_id: string | null;
+    created_at: string;
+    updated_at: string;
+};
+
+export async function getReadyToPlanTasks(): Promise<ReadyToPlanTask[]> {
+    const { data, error } = await supabase
+        .from('tasks')
+        .select(`
+      id,
+      title,
+      next_action,
+      why_it_matters,
+      status,
+      estimated_minutes,
+      context,
+      energy_required,
+      project_id,
+      created_at,
+      updated_at
+    `)
+        .eq('status', 'clarified')
+        .order('updated_at', { ascending: false });
+
+    if (error) {
+        throw error;
+    }
+
+    return data ?? [];
+}

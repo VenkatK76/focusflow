@@ -136,3 +136,61 @@
     background-color: #ebf8ff;
     color: #3182ce;
 }
+
+.ready-to-plan-list {
+    margin-top: 24px;
+}
+
+.inbox-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.inbox-section-header h3 {
+    font-size: 18px;
+    color: var(--text-main, #111c2d);
+}
+
+.inbox-section-header span {
+    color: var(--text-muted, #64748b);
+    font-size: 13px;
+}
+
+.ready-to-plan-card {
+    align-items: flex-start;
+}
+
+.ready-meta {
+    color: var(--text-muted, #64748b);
+    font-size: 12px;
+}
+
+.ready-why {
+    color: var(--text-muted, #64748b);
+    font-size: 13px;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+.ready-plan-button {
+    margin-left: auto;
+    background-color: var(--primary-light, #e6f3ef);
+    color: var(--primary, #006c49);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ready-plan-button:hover {
+    background-color: var(--primary, #006c49);
+    color: white;
+}
+
+.ready-plan-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
