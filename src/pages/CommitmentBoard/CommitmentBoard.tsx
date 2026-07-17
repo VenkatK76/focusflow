@@ -1,11 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AppLayout } from '../../components/layout/AppLayout';
-import { Leaf, RefreshCw, Circle } from 'lucide-react';
+import { Leaf, RefreshCw, Circle, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import {
+  completeTask,
   getNeedsRecoveryTasks,
   getTodayPlan,
+  reopenTaskForToday,
+  updateDailyPlanItemCommitmentLevel,
+  type CommitmentLevel,
   type RecoveryTask,
   type TodayPlan,
   type TodayPlanTask,
@@ -65,6 +69,44 @@ function getMainOutcomeTask(items: TodayPlanTask[]) {
   return items[0] ?? null;
 }
 
+function getCommitmentLabel(commitmentLevel: TodayPlanTask['commitment_level']) {
+  const labels = {
+    must: 'Must',
+    should: 'Should',
+    could: 'Could',
+  };
+
+  return labels[commitmentLevel];
+}
+
+function sortTasksForToday(items: TodayPlanTask[]) {
+  return [...items].sort((a, b) => {
+    if (a.status === 'done' && b.status !== 'done') {
+      return 1;
+    }
+
+    if (a.status !== 'done' && b.status === 'done') {
+      return -1;
+    }
+
+    return a.order_index - b.order_index;
+  });
+}
+
+function getCommitmentGroups(items: TodayPlanTask[]) {
+  return {
+    must: sortTasksForToday(
+      items.filter((item) => item.commitment_level === 'must')
+    ),
+    should: sortTasksForToday(
+      items.filter((item) => item.commitment_level === 'should')
+    ),
+    could: sortTasksForToday(
+      items.filter((item) => item.commitment_level === 'could')
+    ),
+  };
+}
+
 const CommitmentBoard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -75,6 +117,57 @@ const CommitmentBoard: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   const firstName = getFirstName(user?.user_metadata?.full_name);
+
+  const allTodayItems = todayPlan?.items ?? [];
+
+  const todayItems = allTodayItems.filter((item) => {
+    return (
+      item.status === 'planned' ||
+      item.status === 'active' ||
+      item.status === 'done'
+    );
+  });
+
+  const remainingTodayItems = todayItems.filter((item) => item.status !== 'done');
+
+  const mainOutcomeTask = getMainOutcomeTask(
+    remainingTodayItems.length > 0 ? remainingTodayItems : todayItems
+  );
+
+  const commitmentGroups = getCommitmentGroups(todayItems);
+
+  const totalPlannedMinutes = useMemo(() => {
+    return todayItems.reduce((total, item) => {
+      return total + (item.estimated_minutes ?? 0);
+    }, 0);
+  }, [todayItems]);
+
+  const completedCount = todayItems.filter((item) => item.status === 'done').length;
+
+  const capacityPercent = Math.min(
+    Math.round((totalPlannedMinutes / 360) * 100),
+    100
+  );
+
+  const progressCircumference = 251;
+  const progressDashOffset =
+    progressCircumference - (capacityPercent / 100) * progressCircumference;
+
+  const capacityLabel =
+    totalPlannedMinutes === 0
+      ? 'No plan yet'
+      : totalPlannedMinutes <= 240
+        ? 'A light day'
+        : totalPlannedMinutes <= 360
+          ? 'A realistic day'
+          : 'A full day';
+
+  const capacityDescription =
+    totalPlannedMinutes === 0
+      ? 'Add tasks to today from your Inbox after clarifying them.'
+      : totalPlannedMinutes <= 360
+        ? 'Your planned work looks manageable for today.'
+        : 'This day may be over capacity. Consider moving something to another day.';
 
   async function loadTodayDashboard() {
     setLoading(true);
@@ -104,39 +197,64 @@ const CommitmentBoard: React.FC = () => {
     loadTodayDashboard();
   }, []);
 
-  const todayItems = todayPlan?.items ?? [];
-  const mainOutcomeTask = getMainOutcomeTask(todayItems);
+  async function handleCommitmentChange(
+    planItemId: string,
+    commitmentLevel: CommitmentLevel
+  ) {
+    setErrorMessage('');
 
-  const totalPlannedMinutes = useMemo(() => {
-    return todayItems.reduce((total, item) => {
-      return total + (item.estimated_minutes ?? 0);
-    }, 0);
-  }, [todayItems]);
+    try {
+      await updateDailyPlanItemCommitmentLevel(planItemId, commitmentLevel);
 
-  const capacityPercent = Math.min(
-    Math.round((totalPlannedMinutes / 360) * 100),
-    100
-  );
+      setTodayPlan((currentPlan) => {
+        if (!currentPlan) {
+          return currentPlan;
+        }
 
-  const progressCircumference = 251;
-  const progressDashOffset =
-    progressCircumference - (capacityPercent / 100) * progressCircumference;
+        return {
+          ...currentPlan,
+          items: currentPlan.items.map((item) => {
+            if (item.plan_item_id !== planItemId) {
+              return item;
+            }
 
-  const capacityLabel =
-    totalPlannedMinutes === 0
-      ? 'No plan yet'
-      : totalPlannedMinutes <= 240
-        ? 'A light day'
-        : totalPlannedMinutes <= 360
-          ? 'A realistic day'
-          : 'A full day';
+            return {
+              ...item,
+              commitment_level: commitmentLevel,
+            };
+          }),
+        };
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Could not update commitment level.';
 
-  const capacityDescription =
-    totalPlannedMinutes === 0
-      ? 'Add tasks to today from your Inbox after clarifying them.'
-      : totalPlannedMinutes <= 360
-        ? 'Your planned work looks manageable for today.'
-        : 'This day may be over capacity. Consider moving something to another day.';
+      setErrorMessage(message);
+    }
+  }
+
+  async function handleToggleTaskCompletion(item: TodayPlanTask) {
+    setErrorMessage('');
+
+    try {
+      if (item.status === 'done') {
+        await reopenTaskForToday(item.task_id);
+      } else {
+        await completeTask(item.task_id);
+      }
+
+      await loadTodayDashboard();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Could not update task completion.';
+
+      setErrorMessage(message);
+    }
+  }
 
   return (
     <AppLayout>
@@ -146,6 +264,7 @@ const CommitmentBoard: React.FC = () => {
           <h2>Good morning, {firstName}.</h2>
           <p>Let's commit to a realistic day.</p>
         </div>
+
         <div className="header-actions">
           <button
             type="button"
@@ -158,7 +277,7 @@ const CommitmentBoard: React.FC = () => {
           <button
             type="button"
             className="btn-primary"
-            disabled={todayItems.length === 0}
+            disabled={remainingTodayItems.length === 0}
             onClick={() => navigate('/focus')}
           >
             <span className="btn-icon-play"></span> Start Focus
@@ -187,7 +306,7 @@ const CommitmentBoard: React.FC = () => {
               <div className="card-header">
                 <h3>Today's Commitment</h3>
                 <span className="badge">
-                  {todayItems.length} {todayItems.length === 1 ? 'item' : 'items'}
+                  {completedCount}/{todayItems.length} completed
                 </span>
               </div>
 
@@ -215,7 +334,8 @@ const CommitmentBoard: React.FC = () => {
                     <h4>
                       {todayPlan?.main_outcome ||
                         mainOutcomeTask?.next_action ||
-                        mainOutcomeTask?.title}
+                        mainOutcomeTask?.title ||
+                        'All planned tasks are complete'}
                     </h4>
                     <p>
                       {mainOutcomeTask?.why_it_matters ||
@@ -225,45 +345,111 @@ const CommitmentBoard: React.FC = () => {
 
                   {/* Supporting Tasks */}
                   <div className="supporting-tasks">
-                    <span className="section-label">SUPPORTING TASKS</span>
+                    <span className="section-label">COMMITMENT LEVELS</span>
 
-                    {todayItems.map((item) => (
-                      <div
-                        key={item.plan_item_id}
-                        className="task-item task-item-clickable"
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => navigate(`/clarify-task/${item.task_id}`)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter') {
-                            navigate(`/clarify-task/${item.task_id}`);
-                          }
-                        }}
-                      >
-                        <div className="task-checkbox"></div>
+                    {(['must', 'should', 'could'] as const).map((level) => {
+                      const tasks = commitmentGroups[level];
 
-                        <div className="task-details">
-                          <span className="task-title">
-                            {item.next_action || item.title}
-                          </span>
-                          <span className="task-time">
-                            {formatMinutes(item.estimated_minutes)} · {formatContext(item.context)}
-                            {item.project_name ? ` · ${item.project_name}` : ''}
-                          </span>
+                      if (tasks.length === 0) {
+                        return null;
+                      }
+
+                      return (
+                        <div key={level} className="commitment-group">
+                          <div className="commitment-group-header">
+                            <h4>{getCommitmentLabel(level)}</h4>
+                            <span>
+                              {tasks.filter((task) => task.status === 'done').length}/
+                              {tasks.length} completed
+                            </span>
+                          </div>
+
+                          {tasks.map((item) => (
+                            <div
+                              key={item.plan_item_id}
+                              className={`task-item task-item-clickable ${item.status === 'done' ? 'task-item-completed' : ''
+                                }`}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => navigate(`/tasks/${item.task_id}`)}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                  navigate(`/tasks/${item.task_id}`);
+                                }
+                              }}
+                            >
+                              <button
+                                type="button"
+                                className={`task-checkbox ${item.status === 'done' ? 'completed' : ''
+                                  }`}
+                                aria-label={
+                                  item.status === 'done'
+                                    ? 'Mark task incomplete'
+                                    : 'Mark task complete'
+                                }
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleToggleTaskCompletion(item);
+                                }}
+                              >
+                                {item.status === 'done' && (
+                                  <Check size={14} strokeWidth={3} />
+                                )}
+                              </button>
+
+                              <div className="task-details">
+                                <span
+                                  className={`task-title ${item.status === 'done' ? 'completed' : ''
+                                    }`}
+                                >
+                                  {item.next_action || item.title}
+                                </span>
+
+                                <span className="task-time">
+                                  {formatMinutes(item.estimated_minutes)} · {formatContext(item.context)}
+                                  {item.project_name ? ` · ${item.project_name}` : ''}
+                                </span>
+                              </div>
+
+                              {item.status !== 'done' && (
+                                <>
+                                  <div
+                                    className="today-commitment-picker"
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
+                                    {(['must', 'should', 'could'] as CommitmentLevel[]).map((levelOption) => (
+                                      <button
+                                        type="button"
+                                        key={levelOption}
+                                        className={`today-commitment-pill ${item.commitment_level === levelOption ? 'active' : ''
+                                          }`}
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          handleCommitmentChange(item.plan_item_id, levelOption);
+                                        }}
+                                      >
+                                        {levelOption}
+                                      </button>
+                                    ))}
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    className="task-focus-button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      navigate(`/focus/${item.task_id}`);
+                                    }}
+                                  >
+                                    Focus
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          ))}
                         </div>
-
-                        <button
-                          type="button"
-                          className="task-focus-button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            navigate(`/focus/${item.task_id}`);
-                          }}
-                        >
-                          Focus
-                        </button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </>
               )}
@@ -320,7 +506,18 @@ const CommitmentBoard: React.FC = () => {
                 )}
 
                 {recoveryTasks.map((task) => (
-                  <div key={task.id} className="recovery-item">
+                  <div
+                    key={task.id}
+                    className="recovery-item"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/tasks/${task.id}`)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        navigate(`/tasks/${task.id}`);
+                      }
+                    }}
+                  >
                     <Circle size={18} className="radio-icon" />
                     <div className="recovery-details">
                       <span className="recovery-title">

@@ -12,6 +12,7 @@ import ReviewPage from './pages/ReviewPage/ReviewPage';
 import ProjectDetail from './pages/ProjectDetail/ProjectDetail';
 import SettingsPage from './pages/Settings/SettingsPage';
 import NotFoundPage from './pages/NotFound/NotFoundPage';
+import TaskDetailPage from './pages/TaskDetail/TaskDetailPage';
 
 const App: React.FC = () => {
   return (
@@ -91,6 +92,14 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tasks/:taskId"
+          element={
+            <ProtectedRoute>
+              <TaskDetailPage />
             </ProtectedRoute>
           }
         />

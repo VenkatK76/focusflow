@@ -158,8 +158,8 @@ const InboxCapture: React.FC = () => {
         }
     }
 
-    function openClarification(taskId: string) {
-        navigate(`/clarify-task/${taskId}`);
+    function openTaskDetail(taskId: string) {
+        navigate(`/tasks/${taskId}`);
     }
 
     return (
@@ -242,10 +242,10 @@ const InboxCapture: React.FC = () => {
                             className="inbox-item-card"
                             role="button"
                             tabIndex={0}
-                            onClick={() => openClarification(item.id)}
+                            onClick={() => openTaskDetail(item.id)}
                             onKeyDown={(event) => {
                                 if (event.key === 'Enter') {
-                                    openClarification(item.id);
+                                    openTaskDetail(item.id);
                                 }
                             }}
                         >
@@ -286,10 +286,10 @@ const InboxCapture: React.FC = () => {
                             className="inbox-item-card ready-to-plan-card"
                             role="button"
                             tabIndex={0}
-                            onClick={() => openClarification(item.id)}
+                            onClick={() => openTaskDetail(item.id)}
                             onKeyDown={(event) => {
                                 if (event.key === 'Enter') {
-                                    openClarification(item.id);
+                                    openTaskDetail(item.id);
                                 }
                             }}
                         >

@@ -273,14 +273,19 @@ export function getLocalDateString(date = new Date()) {
     return `${year}-${month}-${day}`;
 }
 
-export async function addTaskToToday(taskId: string) {
+export type CommitmentLevel = 'must' | 'should' | 'could';
+
+export async function addTaskToToday(
+    taskId: string,
+    commitmentLevel: CommitmentLevel = 'should'
+) {
     const today = getLocalDateString();
 
     const { data, error } = await supabase.rpc('add_task_to_daily_plan', {
         p_task_id: taskId,
         p_plan_date: today,
         p_order_index: 0,
-        p_commitment_level: 'should',
+        p_commitment_level: commitmentLevel,
     });
 
     if (error) {
@@ -288,6 +293,35 @@ export async function addTaskToToday(taskId: string) {
     }
 
     return data;
+}
+
+export type DailyPlanItem = {
+    id: string;
+    daily_plan_id: string;
+    task_id: string;
+    order_index: number;
+    commitment_level: CommitmentLevel;
+    created_at: string;
+};
+
+export async function updateDailyPlanItemCommitmentLevel(
+    planItemId: string,
+    commitmentLevel: CommitmentLevel
+): Promise<DailyPlanItem> {
+    const { data, error } = await supabase
+        .from('daily_plan_items')
+        .update({
+            commitment_level: commitmentLevel,
+        })
+        .eq('id', planItemId)
+        .select('id, daily_plan_id, task_id, order_index, commitment_level, created_at')
+        .single();
+
+    if (error) {
+        throw error;
+    }
+
+    return data as DailyPlanItem;
 }
 
 export async function getTodayPlan(
@@ -577,4 +611,287 @@ export async function getReadyToPlanTasks(): Promise<ReadyToPlanTask[]> {
     }
 
     return data ?? [];
+}
+
+export type TaskFullDetail = {
+    id: string;
+    user_id: string;
+    project_id: string | null;
+    title: string;
+    description: string | null;
+    next_action: string | null;
+    why_it_matters: string | null;
+    status: string;
+    scheduled_for: string | null;
+    due_at: string | null;
+    estimated_minutes: number | null;
+    actual_minutes: number | null;
+    energy_required: string | null;
+    context: string | null;
+    friction_type: string | null;
+    completed_at: string | null;
+    created_at: string;
+    updated_at: string;
+};
+
+export type TaskProjectSummary = {
+    id: string;
+    name: string;
+    outcome: string | null;
+    description: string | null;
+    status: string;
+};
+
+export type TaskFocusSessionSummary = {
+    id: string;
+    task_id: string;
+    started_at: string;
+    ended_at: string | null;
+    duration_minutes: number | null;
+    completed: boolean;
+    notes: string | null;
+    created_at: string;
+};
+
+export type TaskPlanHistoryItem = {
+    id: string;
+    plan_date: string;
+    plan_status: string;
+    main_outcome: string | null;
+    commitment_level: 'must' | 'should' | 'could';
+    order_index: number;
+    created_at: string;
+};
+
+export type TaskFullDetails = {
+    task: TaskFullDetail;
+    project: TaskProjectSummary | null;
+    focusSessions: TaskFocusSessionSummary[];
+    planHistory: TaskPlanHistoryItem[];
+};
+
+type DailyPlanRelation =
+    | {
+        id: string;
+        plan_date: string;
+        status: string;
+        main_outcome: string | null;
+    }
+    | {
+        id: string;
+        plan_date: string;
+        status: string;
+        main_outcome: string | null;
+    }[]
+    | null;
+
+type TaskPlanHistoryRow = {
+    id: string;
+    commitment_level: 'must' | 'should' | 'could';
+    order_index: number;
+    created_at: string;
+    daily_plans: DailyPlanRelation;
+};
+
+function firstRelationOrNull<T>(value: T | T[] | null): T | null {
+    if (Array.isArray(value)) {
+        return value[0] ?? null;
+    }
+
+    return value;
+}
+
+export async function getTaskFullDetails(
+    taskId: string
+): Promise<TaskFullDetails> {
+    const { data: task, error: taskError } = await supabase
+        .from('tasks')
+        .select(`
+      id,
+      user_id,
+      project_id,
+      title,
+      description,
+      next_action,
+      why_it_matters,
+      status,
+      scheduled_for,
+      due_at,
+      estimated_minutes,
+      actual_minutes,
+      energy_required,
+      context,
+      friction_type,
+      completed_at,
+      created_at,
+      updated_at
+    `)
+        .eq('id', taskId)
+        .single();
+
+    if (taskError) {
+        throw taskError;
+    }
+
+    const taskRow = task as TaskFullDetail;
+
+    let project: TaskProjectSummary | null = null;
+
+    if (taskRow.project_id) {
+        const { data: projectData, error: projectError } = await supabase
+            .from('projects')
+            .select('id, name, outcome, description, status')
+            .eq('id', taskRow.project_id)
+            .maybeSingle();
+
+        if (projectError) {
+            throw projectError;
+        }
+
+        project = projectData as TaskProjectSummary | null;
+    }
+
+    const { data: focusSessions, error: focusError } = await supabase
+        .from('focus_sessions')
+        .select(`
+      id,
+      task_id,
+      started_at,
+      ended_at,
+      duration_minutes,
+      completed,
+      notes,
+      created_at
+    `)
+        .eq('task_id', taskId)
+        .order('started_at', { ascending: false });
+
+    if (focusError) {
+        throw focusError;
+    }
+
+    const { data: planRows, error: planError } = await supabase
+        .from('daily_plan_items')
+        .select(`
+      id,
+      commitment_level,
+      order_index,
+      created_at,
+      daily_plans (
+        id,
+        plan_date,
+        status,
+        main_outcome
+      )
+    `)
+        .eq('task_id', taskId)
+        .order('created_at', { ascending: false });
+
+    if (planError) {
+        throw planError;
+    }
+
+    const planHistory: TaskPlanHistoryItem[] = (
+        (planRows ?? []) as unknown as TaskPlanHistoryRow[]
+    )
+        .map((row) => {
+            const plan = firstRelationOrNull(row.daily_plans);
+
+            if (!plan) {
+                return null;
+            }
+
+            return {
+                id: row.id,
+                plan_date: plan.plan_date,
+                plan_status: plan.status,
+                main_outcome: plan.main_outcome,
+                commitment_level: row.commitment_level,
+                order_index: row.order_index,
+                created_at: row.created_at,
+            };
+        })
+        .filter((row): row is TaskPlanHistoryItem => row !== null);
+
+    return {
+        task: taskRow,
+        project,
+        focusSessions: (focusSessions ?? []) as TaskFocusSessionSummary[],
+        planHistory,
+    };
+}
+
+export async function completeTask(taskId: string): Promise<TaskFullDetail> {
+    const { data, error } = await supabase
+        .from('tasks')
+        .update({
+            status: 'done',
+            completed_at: new Date().toISOString(),
+        })
+        .eq('id', taskId)
+        .select(`
+      id,
+      user_id,
+      project_id,
+      title,
+      description,
+      next_action,
+      why_it_matters,
+      status,
+      scheduled_for,
+      due_at,
+      estimated_minutes,
+      actual_minutes,
+      energy_required,
+      context,
+      friction_type,
+      completed_at,
+      created_at,
+      updated_at
+    `)
+        .single();
+
+    if (error) {
+        throw error;
+    }
+
+    return data as TaskFullDetail;
+}
+
+export async function reopenTaskForToday(taskId: string): Promise<TaskFullDetail> {
+    const { data, error } = await supabase
+        .from('tasks')
+        .update({
+            status: 'planned',
+            completed_at: null,
+            actual_minutes: null,
+        })
+        .eq('id', taskId)
+        .select(`
+      id,
+      user_id,
+      project_id,
+      title,
+      description,
+      next_action,
+      why_it_matters,
+      status,
+      scheduled_for,
+      due_at,
+      estimated_minutes,
+      actual_minutes,
+      energy_required,
+      context,
+      friction_type,
+      completed_at,
+      created_at,
+      updated_at
+    `)
+        .single();
+
+    if (error) {
+        throw error;
+    }
+
+    return data as TaskFullDetail;
 }

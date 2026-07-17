@@ -122,11 +122,7 @@ const ProjectDetail: React.FC = () => {
     }, [tasks]);
 
     function openTask(task: ProjectTask) {
-        if (task.status === 'done') {
-            return;
-        }
-
-        navigate(`/clarify-task/${task.id}`);
+        navigate(`/tasks/${task.id}`);
     }
 
     function startFocus(task: ProjectTask) {
